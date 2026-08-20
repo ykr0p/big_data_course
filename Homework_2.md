@@ -12,14 +12,33 @@
 
 ### Идентификация Сущностей и Атрибутов
 
-1. Объекты недвижимости (Properties)
-2. Арендаторы (Tenants)
-3. Договоры аренды (Leases)
-4. Заявки на обслуживание (MaintenanceRequests)
+1. Типы недвижимости (PropertyTypes)
+2. Объекты недвижимости (Properties)
+3. Арендаторы (Tenants)
+4. Договоры аренды (Leases)
+5. Заявки на обслуживание (MaintenanceRequests)
 
 ### Проектирование Таблиц
 
-#### 1. Table Name: `Properties`
+#### 1. Table Name: `PropertyTypes`
+
+**Description:** Справочник типов недвижимости.
+
+**Attributes:**
+
+| Атрибут | Тип данных | Ограничения |
+|---|---|---|
+| TypeID | INTEGER | PK, NOT NULL, UNIQUE |
+| TypeName | VARCHAR(50) | NOT NULL, UNIQUE |
+
+**Constraints:**
+
+- `PK_PropertyTypes`: PRIMARY KEY (TypeID)
+- `UQ_TypeName`: UNIQUE (TypeName)
+
+---
+
+#### 2. Table Name: `Properties`
 
 **Description:** Хранит информацию об объектах недвижимости, сдаваемых в аренду.
 
@@ -29,23 +48,22 @@
 |---|---|---|
 | PropertyID | INTEGER | PK, NOT NULL, UNIQUE |
 | Address | VARCHAR(255) | NOT NULL |
-| PropertyType | VARCHAR(50) | NOT NULL |
+| TypeID | INTEGER | FK (REFERENCES PropertyTypes), NOT NULL |
 | Rooms | INTEGER | |
 | RentPricePerMonth | DECIMAL(10,2) | NOT NULL |
-| Status | VARCHAR(20) | DEFAULT 'available' |
 
 **Constraints:**
 
 - `PK_Properties`: PRIMARY KEY (PropertyID)
+- `FK_Properties_PropertyTypes`: FOREIGN KEY (TypeID) REFERENCES PropertyTypes(TypeID)
 - `CHK_Rooms`: CHECK (Rooms >= 1)
 - `CHK_RentPrice`: CHECK (RentPricePerMonth > 0)
-- `CHK_Status`: CHECK (Status IN ('available', 'rented', 'under maintenance'))
 
 ---
 
-#### 2. Table Name: `Tenants`
+#### 3. Table Name: `Tenants`
 
-**Description:** Хранит данные об арендаторах (физических или юридических лицах).
+**Description:** Хранит данные об арендаторах.
 
 **Attributes:**
 
@@ -65,7 +83,7 @@
 
 ---
 
-#### 3. Table Name: `Leases`
+#### 4. Table Name: `Leases`
 
 **Description:** Связывает объекты и арендаторов, фиксирует условия аренды (период, стоимость). Реализует связь «многие-ко-многим» между Properties и Tenants.
 
@@ -91,7 +109,7 @@
 
 ---
 
-#### 4. Table Name: `MaintenanceRequests`
+#### 5. Table Name: `MaintenanceRequests`
 
 **Description:** Хранит заявки на обслуживание или ремонт, поданные арендаторами.
 
@@ -105,6 +123,7 @@
 | RequestDate | DATE | NOT NULL, DEFAULT CURRENT_DATE |
 | Status | VARCHAR(20) | DEFAULT 'new' |
 | ResolutionNote | TEXT | |
+| Cost | DECIMAL(10,2) | |
 
 **Constraints:**
 
@@ -115,6 +134,14 @@
 ---
 
 ### Взаимосвязи
+
+#### PropertyTypes и Properties (Один-ко-Многим)
+
+Один тип может быть присвоен многим объектам недвижимости.
+
+`Properties.TypeID` является внешним ключом, ссылающимся на `PropertyTypes.TypeID`.
+
+---
 
 #### Properties и Leases (Один-ко-Многим)
 
