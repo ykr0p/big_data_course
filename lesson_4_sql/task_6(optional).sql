@@ -23,15 +23,23 @@ SET EndDate = StartDate + INTERVAL '1 year'
 WHERE EndDate IS NULL;
 
 -- Вставить нового сотрудника и немедленно назначить его на проект 'Website Redesign' с 80 отработанными часами,
--- все в рамках одной транзакции. Использовать предложение RETURNING, чтобы получить EmployeeID вновь вставленного сотрудника.
+-- все в рамках одной транзакции. Использовать предложение RETURNING, чтобы получить EmployeeID.
+BEGIN; -- начало транзакции
+-- вставляем нового сотрудника и сохраняем его ID
 WITH new_employee AS (
     INSERT INTO Employees (FirstName, LastName, Department, Salary)
     VALUES ('Alex', 'Kozlov', 'IT', 70000.00)
     RETURNING EmployeeID
 )
+-- Назначаем его на проект 'Website Redesign' (ProjectID получаем динамически)
 INSERT INTO EmployeeProjects (EmployeeID, ProjectID, HoursWorked)
-SELECT EmployeeID, 1, 80   -- ProjectID = 1 соответствует 'Website Redesign'
-FROM new_employee;
+SELECT 
+    ne.EmployeeID,
+    (SELECT ProjectID FROM Projects WHERE ProjectName = 'Website Redesign'),
+    80
+FROM new_employee ne;
+
+COMMIT; -- фиксируем транзакцию
 
 SELECT * FROM Employees ORDER BY EmployeeID DESC LIMIT 1;
 SELECT * FROM EmployeeProjects WHERE EmployeeID = (SELECT MAX(EmployeeID) FROM Employees);
