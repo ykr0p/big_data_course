@@ -28,7 +28,7 @@ def main():
     num1 = get_float("Введите первое число: ")
     num2 = get_float("Введите второе число: ")
     op, func = get_operator()
-    if op == '/' and num2 == 0:
+    if op in ('/', '%') and num2 == 0:
         print("Ошибка: деление на ноль невозможно.")
         return
     
